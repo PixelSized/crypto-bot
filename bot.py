@@ -10,6 +10,11 @@ import plotly.graph_objs as go
 #Reading data from config file
 import config as cfg
 
+# Display and server
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+
 
 
 #Storing data from config file
@@ -67,8 +72,7 @@ def runtime():
     #declare figure
     fig = go.Figure(
         layout=go.Layout(
-            title=f"{coin} price is {value}",
-            autosize=True
+            title=f"{coin} price is {value}"
         )
     )
 
@@ -119,7 +123,17 @@ def runtime():
     )
 
     #Finally show the graph
-    fig.show()
+    #fig.show()  #Old Method
+
+    # Start server through dash
+    app = dash.Dash()
+    # HTML Tamperment
+    app.layout = html.Div([
+        dcc.Graph(style={'width': '100vh%', 'height': '98vh'}, figure=fig)
+    ])
+
+    app.run_server(debug=True, use_reloader=True, port=8050)  # Turn off reloader if inside Jupyter
+    time.sleep(cfg.data["refresh"])   
 
 #I hate how python does this, however run the function DOWN THE BOTTOM 😐
 runtime()
