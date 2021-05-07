@@ -7,11 +7,42 @@ import yfinance as yf
 #Data viz
 import plotly.graph_objs as go
 
-coin = "BTC-AUD"
+#Reading data from config file
+import config as cfg
 
+#Storing data from config file
+coin = cfg.data["coin"]
+period = cfg.data["period"]
+interval = cfg.data["interval"]
+
+#Creating a function to run during runtime
 def runtime():
     #Importing market data
-    data = yf.download(tickers=coin, period = '7d', interval = '5m')
+    data = yf.download(
+        # tickers list or string as well
+        tickers = coin,
+
+        # use "period" instead of start/end
+        period = period,
+
+        # fetch data by interval (including intraday if period < 60 days)
+        interval = interval,
+
+        # group by ticker
+        group_by = 'ticker',
+
+        # adjust all OHLC automatically
+        auto_adjust = True,
+
+        # download pre/post regular market hours data
+        prepost = True,
+
+        # use threads for mass downloading? (True/False/Integer)
+        threads = True,
+
+        # proxy URL scheme use use when downloading?
+        proxy = None
+        )
 
     #Adding Moving average calculated field
     data['MA5'] = data['Close'].rolling(5).mean()
@@ -42,12 +73,13 @@ def runtime():
                     high=data['High'],
                     low=data['Low'],
                     close=data['Close'], name = 'market data'))
+    fig.update_traces(line_width=2, selector=dict(type='candlestick'))
 
     #Add Moving average on the graph
     fig.add_trace(go.Scatter(x=data.index, y= data['MA20'],line=dict(color='blue', width=1.5), name = 'Long Term MA'))
     fig.add_trace(go.Scatter(x=data.index, y= data['MA5'],line=dict(color='orange', width=1.5), name = 'Short Term MA'))
 
-    #Updating X axis and graph
+    #Updating X/Y axis and graph
     # X-Axes
     fig.update_xaxes(
         rangeslider_visible=True,
@@ -62,8 +94,14 @@ def runtime():
             ])
         )
     )
+    # Y-Axes
+    fig.update_yaxes(
+        fixedrange=False,
+        autorange=True
+    )
 
-
+    #Finally show the graph
     fig.show()
 
+#I hate how python does this, however run the function DOWN THE BOTTOM 😐
 runtime()
