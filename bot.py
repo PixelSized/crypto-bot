@@ -10,10 +10,13 @@ import plotly.graph_objs as go
 #Reading data from config file
 import config as cfg
 
+
+
 #Storing data from config file
 coin = cfg.data["coin"]
 period = cfg.data["period"]
 interval = cfg.data["interval"]
+theme = cfg.data["theme"]
 
 #Creating a function to run during runtime
 def runtime():
@@ -48,6 +51,7 @@ def runtime():
     data['MA5'] = data['Close'].rolling(5).mean()
     data['MA20'] = data['Close'].rolling(20).mean()
 
+    #Does what it says
     def get_current_price(symbol):
         ticker = yf.Ticker(symbol)
         todays_data = ticker.history(period='1d')
@@ -55,7 +59,7 @@ def runtime():
 
     value = get_current_price(coin)
 
-    #Printing Moving Averages
+    #Printing Collected Values
     print(f"Value: {value}")
     print(f"MA5: {data['MA5'].tail(1).item()}")
     print(f"MA20: {data['MA20'].tail(1).item()}")
@@ -63,7 +67,8 @@ def runtime():
     #declare figure
     fig = go.Figure(
         layout=go.Layout(
-            title=go.layout.Title(text=f"{coin} price is {value}")
+            title=f"{coin} price is {value}",
+            autosize=True
         )
     )
 
@@ -76,8 +81,8 @@ def runtime():
     fig.update_traces(line_width=2, selector=dict(type='candlestick'))
 
     #Add Moving average on the graph
-    fig.add_trace(go.Scatter(x=data.index, y= data['MA20'],line=dict(color='blue', width=1.5), name = 'Long Term MA'))
-    fig.add_trace(go.Scatter(x=data.index, y= data['MA5'],line=dict(color='orange', width=1.5), name = 'Short Term MA'))
+    fig.add_trace(go.Scatter(x=data.index, y= data['MA20'],line=dict(color='blue', width=2), name = 'Long Term MA'))
+    fig.add_trace(go.Scatter(x=data.index, y= data['MA5'],line=dict(color='orange', width=2), name = 'Short Term MA'))
 
     #Updating X/Y axis and graph
     # X-Axes
@@ -92,12 +97,25 @@ def runtime():
                 dict(count=5, label="5d", step="day", stepmode="backward"),
                 dict(count=7, label="WTD", step="day", stepmode="todate"),
             ])
-        )
+        ),
+        color="white"
     )
     # Y-Axes
     fig.update_yaxes(
         fixedrange=False,
-        autorange=True
+        autorange=True,
+        color="white"
+    )
+
+
+    #Design tingz
+    fig.update_layout(
+        template=theme,
+        font_color="black",
+        title_font_color="white",
+        legend_title="Legend",
+        legend_title_font_color="white",
+        legend_font_color="white"
     )
 
     #Finally show the graph
